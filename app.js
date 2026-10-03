@@ -1,264 +1,355 @@
-const COUNTIES = ["Nairobi","Mombasa","Kisumu","Nakuru","Kiambu","Machakos","Kajiado","Uasin Gishu","Nyeri","Meru","Kilifi","Kakamega","Kisii","Murang'a","Laikipia"];
-const PEOPLE = [
-  { id: 1, name: "Amina", age: 26, county: "Mombasa", town: "Nyali", km: 4.2, mode: "professional", religion: "Muslim", interests: ["beach walks", "swahili food", "design"], bio: "Architect who clocks out for the ocean. Looking for someone calm, funny, and serious about plans.", hue: "210,70%,46%" },
-  { id: 2, name: "Brian", age: 29, county: "Nairobi", town: "Kilimani", km: 2.1, mode: "professional", religion: "Christian", interests: ["coffee", "running", "startups"], bio: "Product lead. Weekends are Karura or a long lunch. No games, just good conversation.", hue: "18,72%,42%" },
-  { id: 3, name: "Wanjiku", age: 23, county: "Kiambu", town: "Ruiru", km: 11, mode: "student", religion: "Christian", interests: ["gospel", "books", "matatus stories"], bio: "Final-year student. Church on Sunday, library most nights. Kindness is non-negotiable.", hue: "142,40%,32%" },
-  { id: 4, name: "Otieno", age: 31, county: "Kisumu", town: "Milimani", km: 6.4, mode: "professional", religion: "Christian", interests: ["lake", "football", "nyam chom"], bio: "Teacher and weekend fisherman. I like people who laugh easily and keep their word.", hue: "200,55%,38%" },
-  { id: 5, name: "Faith", age: 27, county: "Nakuru", town: "Milimani", km: 8, mode: "church", religion: "Christian", interests: ["choir", "hiking", "baking"], bio: "Church mode on purpose. Looking for marriage-minded, not a situationship.", hue: "330,45%,42%" },
-  { id: 6, name: "Jamal", age: 24, county: "Nairobi", town: "Eastleigh", km: 5.5, mode: "student", religion: "Muslim", interests: ["photography", "chai", "code"], bio: "CS student building small apps. Sheng welcome. Let's meet somewhere public first.", hue: "28,70%,40%" },
-  { id: 7, name: "Chebet", age: 28, county: "Uasin Gishu", town: "Elgon View", km: 3.3, mode: "professional", religion: "Christian", interests: ["athletics", "travel", "tea farms"], bio: "Based in Eldoret. Early mornings, honest texts, and someone who can keep up on a long walk.", hue: "160,35%,30%" },
-  { id: 8, name: "Njeri", age: 30, county: "Nyeri", town: "King'ong'o", km: 9, mode: "church", religion: "Christian", interests: ["farm visits", "jazz", "mentorship"], bio: "Accountant who still goes home for Sundays. Warm, direct, and done with small talk loops.", hue: "12,60%,38%" }
-];
+const COUNTIES = ["Nairobi","Mombasa","Kisumu","Nakuru","Kiambu","Uasin Gishu","Machakos","Kajiado","Kilifi","Nyeri","Meru","Kakamega"];
+const INTERESTS = ["Coffee","Hiking","Gospel","Afrobeats","Football","Cooking","Startups","Travel","Reading","Beach"];
+const TRIBES = ["Any","Kikuyu","Luo","Luhya","Kamba","Kalenjin","Kisii","Meru","Mijikenda","Somali","Other"];
+const RELIGIONS = ["Any","Christian","Muslim","Traditional","Spiritual","Prefer not to say"];
+const MODES = ["Student","Professional","Church"];
 
-const state = {
-  view: "home",
-  user: JSON.parse(localStorage.getItem("pamoja-user") || "null"),
-  likes: JSON.parse(localStorage.getItem("pamoja-likes") || "[]"),
-  passes: JSON.parse(localStorage.getItem("pamoja-passes") || "[]"),
-  matches: JSON.parse(localStorage.getItem("pamoja-matches") || "[]"),
-  chats: JSON.parse(localStorage.getItem("pamoja-chats") || "{}"),
-  filters: { county: "Any", mode: "Any", maxKm: 50, minAge: 18, maxAge: 40 },
-  index: 0,
-  chatWith: null,
-  toast: "",
-  loc: "Location not shared yet"
+const SEED = [
+  { id:"amina", name:"Amina", age:26, county:"Mombasa", town:"Nyali", lat:-4.0435, lng:39.6682, tribe:"Mijikenda", religion:"Muslim", mode:"Professional", interests:["Beach","Travel","Cooking"], bio:"Architect who disappears to the coast on Fridays. Halal food, slow walks, no games.", color:"#c4522a" },
+  { id:"brian", name:"Brian", age:29, county:"Nairobi", town:"Kilimani", lat:-1.2921, lng:36.787, tribe:"Kikuyu", religion:"Christian", mode:"Professional", interests:["Startups","Coffee","Football"], bio:"Product guy in Kilimani. Weeknights are Java and a run. Looking for someone who texts back.", color:"#2f6b4f" },
+  { id:"wanjiku", name:"Wanjiku", age:23, county:"Kiambu", town:"Ruiru", lat:-1.1489, lng:36.9606, tribe:"Kikuyu", religion:"Christian", mode:"Student", interests:["Gospel","Reading","Afrobeats"], bio:"KU student. Church on Sunday, gengetone when nobody is looking.", color:"#8a4b2f" },
+  { id:"otieno", name:"Otieno", age:31, county:"Kisumu", town:"Milimani", lat:-0.0917, lng:34.768, tribe:"Luo", religion:"Christian", mode:"Professional", interests:["Football","Cooking","Travel"], bio:"I will cook fish and argue about Gor Mahia. Kisumu forever, Nairobi sometimes.", color:"#345c8a" },
+  { id:"faith", name:"Faith", age:27, county:"Uasin Gishu", town:"Eldoret", lat:0.5143, lng:35.2698, tribe:"Kalenjin", religion:"Christian", mode:"Church", interests:["Gospel","Hiking","Coffee"], bio:"Marriage-minded. I value prayer, honesty, and someone who can hike the escarpment.", color:"#6b4b8a" },
+  { id:"leila", name:"Leila", age:24, county:"Nairobi", town:"Eastleigh", lat:-1.273, lng:36.848, tribe:"Somali", religion:"Muslim", mode:"Student", interests:["Reading","Coffee","Travel"], bio:"USIU. Quiet until I trust you. Tea over clubs.", color:"#9a3b1c" },
+  { id:"kevin", name:"Kevin", age:28, county:"Nakuru", town:"Milimani", lat:-0.3031, lng:36.08, tribe:"Kisii", religion:"Christian", mode:"Professional", interests:["Hiking","Football","Startups"], bio:"Lake days and a small business. Not looking for pen pals.", color:"#3d6b4f" },
+  { id:"njeri", name:"Njeri", age:30, county:"Machakos", town:"Athi River", lat:-1.45, lng:36.98, tribe:"Kamba", religion:"Christian", mode:"Professional", interests:["Cooking","Gospel","Beach"], bio:"Works in Nairobi, lives quieter in Machakos. Church mode, but I laugh loud.", color:"#b co".replace(" ","") }
+];
+SEED[7].color = "#a15c38";
+
+const store = {
+  load() { try { return JSON.parse(localStorage.getItem("pamoja") || "{}"); } catch { return {}; } },
+  save(data) { localStorage.setItem("pamoja", JSON.stringify(data)); }
 };
 
-function save() {
-  localStorage.setItem("pamoja-user", JSON.stringify(state.user));
-  localStorage.setItem("pamoja-likes", JSON.stringify(state.likes));
-  localStorage.setItem("pamoja-passes", JSON.stringify(state.passes));
-  localStorage.setItem("pamoja-matches", JSON.stringify(state.matches));
-  localStorage.setItem("pamoja-chats", JSON.stringify(state.chats));
-}
+let state = Object.assign({
+  view: "home", user: null, notices: [], likes: {}, passes: {}, matches: [], chats: {}, blocks: [], reports: [],
+  filters: { county: "Any", distance: 80, minAge: 18, maxAge: 40, tribe: "Any", religion: "Any", mode: "Any" },
+  location: null, chatWith: null
+}, store.load());
 
-function toast(msg) {
-  state.toast = msg;
-  render();
-  setTimeout(() => { state.toast = ""; render(); }, 2200);
+function persist() { store.save(state); }
+function km(a, b) {
+  const R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
-
-function haversine(a, b) {
-  const R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLon = (b.lng - a.lng) * Math.PI / 180;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
+function countyCenter(name) {
+  const hit = SEED.find(p => p.county === name);
+  return hit ? { lat: hit.lat, lng: hit.lng } : { lat: -1.286, lng: 36.817 };
 }
+function notify(text) {
+  state.notices.unshift({ id: Date.now(), text, at: new Date().toLocaleTimeString() });
+  persist(); render();
+}
+function toast(text) {
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2400);
+}
+function go(view) { state.view = view; persist(); render(); }
 
 function nearby() {
-  return PEOPLE.filter(p => {
-    if (state.passes.includes(p.id) || state.likes.includes(p.id)) return false;
-    if (state.filters.county !== "Any" && p.county !== state.filters.county) return false;
-    if (state.filters.mode !== "Any" && p.mode !== state.filters.mode) return false;
-    if (p.km > Number(state.filters.maxKm)) return false;
-    if (p.age < state.filters.minAge || p.age > state.filters.maxAge) return false;
-    return true;
-  });
+  const me = state.user;
+  if (!me) return [];
+  const origin = state.location || countyCenter(me.county);
+  return SEED.filter(p => !state.blocks.includes(p.id) && !state.passes[p.id] && !state.likes[p.id])
+    .map(p => {
+      const distance = km(origin, p);
+      const shared = p.interests.filter(i => (me.interests || []).includes(i)).length;
+      const modeBoost = me.mode && p.mode === me.mode ? 12 : 0;
+      const score = Math.max(1, Math.round(100 - distance + shared * 8 + modeBoost));
+      return { ...p, distance, score };
+    })
+    .filter(p => {
+      const f = state.filters;
+      if (f.county !== "Any" && p.county !== f.county) return false;
+      if (p.distance > Number(f.distance)) return false;
+      if (p.age < Number(f.minAge) || p.age > Number(f.maxAge)) return false;
+      if (f.tribe !== "Any" && p.tribe !== f.tribe) return false;
+      if (f.religion !== "Any" && p.religion !== f.religion) return false;
+      if (f.mode !== "Any" && p.mode !== f.mode) return false;
+      return true;
+    })
+    .sort((a, b) => b.score - a.score);
 }
 
+function like(person) {
+  state.likes[person.id] = true;
+  const mutual = true;
+  state.matches.push({ id: person.id, at: Date.now() });
+  state.chats[person.id] = state.chats[person.id] || [{ from: "them", text: `Sasa ${state.user.name.split(" ")[0]} — saw we matched from ${person.town}.` }];
+  notify(`New match with ${person.name} in ${person.town}.`);
+  toast(`It's a match with ${person.name}`);
+  persist(); render();
+}
+function pass(person) { state.passes[person.id] = true; persist(); render(); }
+
 function shell(inner) {
-  const u = state.user;
-  return `
-    <div class="shell">
-      <header class="top">
-        <div class="brand"><div class="mark">P</div> Pamoja</div>
-        <nav class="nav">
-          <button data-go="home" class="${state.view==="home"?"active":""}">Home</button>
-          <button data-go="discover" class="${state.view==="discover"?"active":""}">Nearby</button>
-          <button data-go="matches" class="${state.view==="matches"?"active":""}">Matches</button>
-          <button data-go="safety" class="${state.view==="safety"?"active":""}">Safety</button>
-          ${u ? `<button data-go="profile">Profile</button><button id="logout">Log out</button>` : `<button data-go="auth" class="solid">Join</button>`}
-        </nav>
-      </header>
-      ${inner}
-      ${state.toast ? `<div class="toast">${state.toast}</div>` : ""}
-    </div>`;
+  const noteCount = state.notices.length;
+  document.getElementById("app").innerHTML = `
+    <header class="top">
+      <div class="brand"><div class="mark">P</div> Pamoja</div>
+      <nav class="nav">
+        <button class="${state.view==="home"?"active":""}" data-go="home">Home</button>
+        <button class="${state.view==="nearby"?"active":""}" data-go="nearby">Nearby</button>
+        <button class="${state.view==="matches"?"active":""}" data-go="matches">Matches</button>
+        <button class="${state.view==="safety"?"active":""}" data-go="safety">Safety</button>
+        <button class="${state.view==="notes"?"active":""}" data-go="notes">Alerts ${noteCount?`<span class="badge">${noteCount}</span>`:""}</button>
+        ${state.user ? `<button data-go="profile">Profile</button><button data-go="premium">Premium</button><button id="logout">Log out</button>` : `<button class="solid" data-go="join">Join</button>`}
+      </nav>
+    </header>
+    <main class="wrap">${inner}</main>`;
+  document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+  const out = document.getElementById("logout");
+  if (out) out.onclick = () => { state.user = null; persist(); go("home"); };
 }
 
 function home() {
-  return shell(`
+  shell(`
     <section class="hero">
       <div>
         <div class="kicker">Kenya · location matchmaking</div>
         <h1>Meet someone close enough to actually meet.</h1>
-        <p class="lede">Pamoja matches people by county, town, and distance — Nairobi to Mombasa, Kisumu to Eldoret. Student mode, professional mode, or church mode.</p>
+        <p class="lede">Pamoja ranks people by county, town, and distance — Nairobi to Mombasa, Kisumu to Eldoret. Student mode, professional mode, or church mode.</p>
         <div class="row">
-          <button class="solid" data-go="auth">Create a profile</button>
-          <button class="ghost" data-go="discover">See nearby demo</button>
+          <button class="solid" data-go="join">Create a profile</button>
+          <button class="ghost" data-go="nearby">See nearby</button>
         </div>
         <div class="pills">
-          <span class="pill">47 counties</span><span class="pill">M-Pesa premium</span><span class="pill">Sheng welcome</span><span class="pill">18+ only</span>
+          <span class="pill">47 counties, demo set focused</span>
+          <span class="pill">M-Pesa premium later</span>
+          <span class="pill">Sheng welcome</span>
+          <span class="pill">18+ only</span>
         </div>
+        <p class="note">Demo profiles live in your browser. Real GPS permission is requested on Nearby. Chat and payments need a backend before launch.</p>
       </div>
-      <div class="phone">
-        <div class="notice">Demo uses sample profiles stored in your browser. Real GPS, chat, and payments need a backend — see the README.</div>
-        <div class="grid-2" style="margin-top:12px">
-          ${PEOPLE.slice(0,4).map(p => `<div class="card"><strong>${p.name}, ${p.age}</strong><div class="muted">${p.town}, ${p.county} · ${p.km} km</div></div>`).join("")}
-        </div>
+      <div class="stack">
+        ${SEED.slice(0,4).map(p => `<article class="person"><div class="avatar" style="background:${p.color}">${p.name[0]}</div><div><strong>${p.name}, ${p.age}</strong><div class="muted">${p.town}, ${p.county}</div><div class="note">${p.mode} · ${p.interests.slice(0,2).join(", ")}</div></div></article>`).join("")}
       </div>
     </section>
-    <section class="grid-3">
-      <article class="panel"><h3>County first</h3><p class="muted">Filter Nairobi, Kiambu, Mombasa, Kisumu and the rest. Distance uses your coordinates when you allow location.</p></article>
-      <article class="panel"><h3>Modes</h3><p class="muted">Student, professional, or church. Same app, different intention — casual coffee or marriage-minded.</p></article>
-      <article class="panel"><h3>Safety built in</h3><p class="muted">Report, block, and a public-meetup reminder before anyone shares a number.</p></article>
+    <section class="grid3">
+      <article class="card"><h3>County first</h3><p class="muted">Filter Nairobi, Kiambu, Mombasa, Kisumu and more. Distance uses your coordinates when you allow location.</p></article>
+      <article class="card"><h3>Modes</h3><p class="muted">Student, professional, or church. Same app, different intention.</p></article>
+      <article class="card"><h3>Safety</h3><p class="muted">Report, block, and a public-meetup reminder before anyone shares a number.</p></article>
     </section>`);
+  document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
 }
 
-function auth() {
-  return shell(`
-    <section style="padding-top:28px">
-      <h1>Join Pamoja</h1>
-      <p class="muted">18+ only. This demo keeps your profile on this device.</p>
-      <form id="join" class="form" style="margin-top:16px">
-        <label>Name <input name="name" required placeholder="Your first name" /></label>
-        <label>Age <input name="age" type="number" min="18" max="80" required value="24" /></label>
-        <label>County <select name="county">${COUNTIES.map(c => `<option>${c}</option>`).join("")}</select></label>
-        <label>Town <input name="town" placeholder="Kilimani, Nyali, Milimani…" /></label>
-        <label>Mode
-          <select name="mode"><option value="professional">Professional</option><option value="student">Student</option><option value="church">Church</option></select>
-        </label>
-        <label>Bio <textarea name="bio" rows="3" placeholder="What are you actually looking for?"></textarea></label>
-        <button class="solid" type="submit">Save profile & continue</button>
+function join() {
+  shell(`
+    <section class="panel" style="max-width:640px;margin:auto">
+      <h2>Create your profile</h2>
+      <p class="muted">18+ only. This demo saves the profile on this device.</p>
+      <form id="joinForm">
+        <div class="form-grid">
+          <div><label>First name</label><input name="name" required placeholder="Achieng" /></div>
+          <div><label>Age</label><input name="age" type="number" min="18" max="70" required value="24" /></div>
+          <div><label>County</label><select name="county">${COUNTIES.map(c => `<option>${c}</option>`).join("")}</select></div>
+          <div><label>Town</label><input name="town" required placeholder="Westlands" /></div>
+          <div><label>Mode</label><select name="mode">${MODES.map(m => `<option>${m}</option>`).join("")}</select></div>
+          <div><label>Religion</label><select name="religion">${RELIGIONS.filter(r=>r!=="Any").map(r=>`<option>${r}</option>`).join("")}</select></div>
+          <div><label>Community / tribe (optional)</label><select name="tribe">${TRIBES.filter(t=>t!=="Any").map(t=>`<option>${t}</option>`).join("")}</select></div>
+          <div><label>Photo</label><input name="photo" type="file" accept="image/*" /></div>
+        </div>
+        <label>Interests</label>
+        <div class="pills">${INTERESTS.map(i => `<label class="pill"><input type="checkbox" name="interests" value="${i}" /> ${i}</label>`).join("")}</div>
+        <label>Bio</label>
+        <textarea name="bio" required placeholder="What a first date in your town looks like."></textarea>
+        <div class="row"><button class="solid" type="submit">Save and see nearby</button></div>
       </form>
     </section>`);
+  document.getElementById("joinForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const age = Number(fd.get("age"));
+    if (age < 18) return toast("Pamoja is 18+ only.");
+    let photo = "";
+    const file = fd.get("photo");
+    if (file && file.size) photo = await fileToData(file);
+    state.user = {
+      name: fd.get("name"), age, county: fd.get("county"), town: fd.get("town"),
+      mode: fd.get("mode"), religion: fd.get("religion"), tribe: fd.get("tribe"),
+      interests: fd.getAll("interests"), bio: fd.get("bio"), photo
+    };
+    notify("Profile saved. Allow location on the next screen for real distance.");
+    go("nearby");
+  };
 }
 
-function discover() {
-  const list = nearby();
-  const p = list[0];
-  return shell(`
-    <div class="layout">
-      <aside class="panel">
-        <h3>Filters</h3>
-        <form id="filters" class="form">
-          <label>County <select name="county"><option>Any</option>${COUNTIES.map(c => `<option ${state.filters.county===c?"selected":""}>${c}</option>`).join("")}</select></label>
-          <label>Mode <select name="mode">${["Any","student","professional","church"].map(m => `<option ${state.filters.mode===m?"selected":""}>${m}</option>`).join("")}</select></label>
-          <label>Max distance (km) <input name="maxKm" type="number" value="${state.filters.maxKm}" /></label>
-          <label>Age from <input name="minAge" type="number" value="${state.filters.minAge}" /></label>
-          <label>Age to <input name="maxAge" type="number" value="${state.filters.maxAge}" /></label>
-          <button class="solid" type="submit">Apply</button>
-          <button type="button" id="gps" class="ghost">Use my GPS</button>
-          <p class="muted">${state.loc}</p>
-        </form>
-      </aside>
-      <section>
-        ${p ? `
-          <article class="profile-card">
-            <div class="cover" style="background:linear-gradient(160deg, hsl(${p.hue}), #1c1410 80%)">
-              <div><div class="pill">${p.mode} · ${p.religion}</div><h2>${p.name}, ${p.age}</h2><div>${p.town}, ${p.county} · ${p.km} km away</div></div>
-            </div>
-            <div style="padding:16px">
-              <p>${p.bio}</p>
-              <div class="chips">${p.interests.map(i => `<span class="chip">${i}</span>`).join("")}</div>
-            </div>
-            <div class="actions">
-              <button class="pass" data-pass="${p.id}">✕</button>
-              <button data-report="${p.id}">⚑</button>
-              <button class="like" data-like="${p.id}">♥</button>
-            </div>
-          </article>` : `<div class="panel"><h2>No one in this radius</h2><p class="muted">Widen the distance or switch county. Likes you already sent are in Matches.</p></div>`}
-      </section>
-    </div>`);
-}
-
-function matches() {
-  const people = state.matches.map(id => PEOPLE.find(p => p.id === id)).filter(Boolean);
-  const active = PEOPLE.find(p => p.id === state.chatWith) || people[0];
-  const thread = active ? (state.chats[active.id] || [{ from: "them", text: `Sasa, I'm ${active.name}. Public spot only for a first meet — deal?` }]) : [];
-  return shell(`
-    <section style="padding-top:22px">
-      <h1>Matches</h1>
-      <p class="muted">A match is mutual in the real app. Here, a like opens chat so you can try the flow.</p>
-      <div class="panel chat" style="margin-top:14px">
-        <div class="thread">
-          ${people.length ? people.map(p => `<button data-chat="${p.id}" style="display:block;width:100%;text-align:left;border:0;background:${active&&active.id===p.id?"#f6efe8":"transparent"};padding:12px"><strong>${p.name}</strong><div class="muted">${p.town}</div></button>`).join("") : `<p class="muted" style="padding:12px">Like someone nearby first.</p>`}
-        </div>
-        <div style="padding:12px;display:flex;flex-direction:column">
-          ${active ? thread.map(m => `<div class="msg ${m.from==="me"?"mine":"theirs"}">${m.text}</div>`).join("") + `
-            <form id="send" style="margin-top:auto;display:flex;gap:8px">
-              <input name="text" placeholder="Andika ujumbe…" style="flex:1" />
-              <button class="solid" type="submit">Send</button>
-            </form>` : ""}
-        </div>
-      </div>
-    </section>`);
-}
-
-function safety() {
-  return shell(`
-    <section style="padding-top:28px;max-width:680px">
-      <h1>Safety</h1>
-      <div class="grid-2" style="margin-top:16px">
-        <article class="panel"><h3>Meet in public</h3><p class="muted">First meet at a cafe, mall, or campus spot. Tell a friend where you are going.</p></article>
-        <article class="panel"><h3>Report & block</h3><p class="muted">The flag on a profile records a report on this device and hides that person.</p></article>
-        <article class="panel"><h3>Money</h3><p class="muted">Pamoja will never ask you to send someone M-Pesa to “verify” a date.</p></article>
-        <article class="panel"><h3>Premium, later</h3><p class="muted">See who liked you and boosts in your county. STK push via Daraja when a backend is connected.</p></article>
-      </div>
-    </section>`);
+function fileToData(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
 }
 
 function profile() {
+  if (!state.user) return go("join");
   const u = state.user;
-  if (!u) return auth();
-  return shell(`
-    <section style="padding-top:28px;max-width:560px">
-      <h1>${u.name}, ${u.age}</h1>
-      <p class="muted">${u.town || "Town not set"}, ${u.county} · ${u.mode} mode</p>
-      <p>${u.bio || "Add a bio so nearby people know the vibe."}</p>
-      <div class="notice">Photo upload in production goes to object storage (S3 or Cloudinary), not the browser. Notifications would use web push or SMS.</div>
+  shell(`
+    <section class="panel" style="max-width:640px;margin:auto">
+      <h2>${u.name}, ${u.age}</h2>
+      <p class="muted">${u.town}, ${u.county} · ${u.mode}</p>
+      ${u.photo ? `<img src="${u.photo}" alt="Your photo" style="width:120px;height:120px;object-fit:cover;border-radius:18px" />` : ""}
+      <p>${u.bio}</p>
+      <div class="pills">${u.interests.map(i => `<span class="pill">${i}</span>`).join("")}</div>
+      <p class="note">Community: ${u.tribe} · ${u.religion}</p>
+      <button class="ghost" id="edit">Edit profile</button>
     </section>`);
+  document.getElementById("edit").onclick = () => go("join");
 }
 
-function render() {
-  const views = { home, auth, discover, matches, safety, profile };
-  document.getElementById("app").innerHTML = (views[state.view] || home)();
-  bind();
+function filtersHtml() {
+  const f = state.filters;
+  return `<form id="filters" class="card">
+    <h3>Filters</h3>
+    <label>County</label><select name="county"><option>Any</option>${COUNTIES.map(c => `<option ${f.county===c?"selected":""}>${c}</option>`).join("")}</select>
+    <label>Max distance (km)</label><input name="distance" type="number" value="${f.distance}" min="1" max="800" />
+    <div class="form-grid">
+      <div><label>Min age</label><input name="minAge" type="number" value="${f.minAge}" min="18" /></div>
+      <div><label>Max age</label><input name="maxAge" type="number" value="${f.maxAge}" /></div>
+    </div>
+    <label>Community</label><select name="tribe">${TRIBES.map(t => `<option ${f.tribe===t?"selected":""}>${t}</option>`).join("")}</select>
+    <label>Religion</label><select name="religion">${RELIGIONS.map(t => `<option ${f.religion===t?"selected":""}>${t}</option>`).join("")}</select>
+    <label>Mode</label><select name="mode"><option ${f.mode==="Any"?"selected":""}>Any</option>${MODES.map(m => `<option ${f.mode===m?"selected":""}>${m}</option>`).join("")}</select>
+    <div class="row"><button class="solid" type="submit">Apply</button><button type="button" class="ghost" id="gps">Use my GPS</button></div>
+    <p class="note">${state.location ? "Using your coordinates." : "Using your county centre until you allow GPS."}</p>
+  </form>`;
 }
 
-function bind() {
-  document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { state.view = b.dataset.go; render(); });
-  const logout = document.getElementById("logout");
-  if (logout) logout.onclick = () => { state.user = null; save(); state.view = "home"; render(); };
-  const join = document.getElementById("join");
-  if (join) join.onsubmit = (e) => {
+function nearbyView() {
+  if (!state.user) return go("join");
+  const people = nearby();
+  const p = people[0];
+  const card = p ? `
+    <div class="swipe" style="background:${p.color}">
+      <div class="chip">${p.score} match score</div>
+      <h2>${p.name}, ${p.age}</h2>
+      <div>${p.town}, ${p.county} · ${p.distance.toFixed(1)} km</div>
+      <div class="chips">${p.interests.map(i => `<span class="chip">${i}</span>`).join("")}<span class="chip">${p.mode}</span></div>
+      <p>${p.bio}</p>
+      <div class="actions">
+        <button class="pass" id="pass">Pass</button>
+        <button class="like" id="like">Like</button>
+      </div>
+    </div>` : `<div class="card"><h3>No one in this filter</h3><p class="muted">Widen distance or switch county. Demo has 8 people.</p></div>`;
+  shell(`<section class="deck">${card}<div>${filtersHtml()}<article class="card" style="margin-top:12px"><h3>How matching works</h3><p class="muted">Score = closeness + shared interests + same mode. A like in this demo creates a match so you can try chat. A real app waits for a mutual like.</p></article></div></section>`);
+  document.getElementById("filters").onsubmit = (e) => {
     e.preventDefault();
-    const f = new FormData(join);
-    if (Number(f.get("age")) < 18) return toast("You must be 18+");
-    state.user = Object.fromEntries(f.entries());
-    save(); state.view = "discover"; toast("Profile saved"); render();
-  };
-  const filters = document.getElementById("filters");
-  if (filters) filters.onsubmit = (e) => {
-    e.preventDefault();
-    state.filters = Object.fromEntries(new FormData(filters).entries());
-    render();
+    const fd = new FormData(e.target);
+    state.filters = Object.fromEntries(fd.entries());
+    persist(); render();
   };
   const gps = document.getElementById("gps");
   if (gps) gps.onclick = () => {
-    if (!navigator.geolocation) return toast("GPS not available");
+    if (!navigator.geolocation) return toast("GPS not available in this browser.");
     navigator.geolocation.getCurrentPosition(pos => {
-      const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      const nairobi = { lat: -1.286389, lng: 36.817223 };
-      state.loc = `GPS on · about ${haversine(here, nairobi).toFixed(0)} km from Nairobi CBD`;
+      state.location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      notify("Location saved on this device.");
       toast("Location updated");
-    }, () => toast("Location permission denied"));
+      persist(); render();
+    }, () => toast("Location permission denied. County centre still works."));
   };
-  document.querySelectorAll("[data-like]").forEach(b => b.onclick = () => {
-    const id = Number(b.dataset.like);
-    state.likes.push(id); state.matches.push(id); save(); toast("It's a match — say hi"); state.view = "matches"; state.chatWith = id; render();
-  });
-  document.querySelectorAll("[data-pass]").forEach(b => b.onclick = () => { state.passes.push(Number(b.dataset.pass)); save(); render(); });
-  document.querySelectorAll("[data-report]").forEach(b => b.onclick = () => { state.passes.push(Number(b.dataset.report)); save(); toast("Reported and hidden"); render(); });
-  document.querySelectorAll("[data-chat]").forEach(b => b.onclick = () => { state.chatWith = Number(b.dataset.chat); render(); });
-  const send = document.getElementById("send");
-  if (send) send.onsubmit = (e) => {
+  if (p) {
+    document.getElementById("pass").onclick = () => pass(p);
+    document.getElementById("like").onclick = () => like(p);
+  }
+}
+
+function matchesView() {
+  if (!state.user) return go("join");
+  const items = state.matches.map(m => SEED.find(p => p.id === m.id)).filter(Boolean);
+  if (!state.chatWith && items[0]) state.chatWith = items[0].id;
+  const current = SEED.find(p => p.id === state.chatWith);
+  const thread = current ? (state.chats[current.id] || []) : [];
+  shell(`
+    <section class="deck">
+      <div class="list">
+        ${items.length ? items.map(p => `<button class="item" data-chat="${p.id}"><div class="avatar" style="width:52px;height:52px;background:${p.color}">${p.name[0]}</div><div><strong>${p.name}</strong><div class="note">${p.town}</div></div><span class="pill">Chat</span></button>`).join("") : `<div class="card">No matches yet. Like someone nearby.</div>`}
+      </div>
+      <div class="chat">
+        ${current ? `<div style="padding:12px;border-bottom:1px solid var(--line)"><strong>${current.name}</strong><div class="note">Meet in public first. Do not send money.</div></div>
+        <div class="bubbles">${thread.map(m => `<div class="bubble ${m.from==="me"?"me":""}">${escapeHtml(m.text)}</div>`).join("")}</div>
+        <form class="composer" id="send"><input name="text" placeholder="Andika ujumbe..." required /><button class="solid" type="submit">Send</button></form>` : `<div class="bubbles muted">Pick a match.</div>`}
+      </div>
+    </section>`);
+  document.querySelectorAll("[data-chat]").forEach(b => b.onclick = () => { state.chatWith = b.dataset.chat; render(); });
+  const form = document.getElementById("send");
+  if (form) form.onsubmit = (e) => {
     e.preventDefault();
-    const text = new FormData(send).get("text").trim();
-    if (!text || !state.chatWith) return;
-    const id = state.chatWith;
-    state.chats[id] = state.chats[id] || [{ from: "them", text: "Sasa. Public spot for a first meet?" }];
-    state.chats[id].push({ from: "me", text });
-    save(); render();
+    const text = new FormData(e.target).get("text");
+    state.chats[current.id].push({ from: "me", text });
+    state.chats[current.id].push({ from: "them", text: "Poa. Coffee this weekend, public place?" });
+    persist(); render();
   };
 }
 
+function notesView() {
+  shell(`<section class="panel"><h2>Notifications</h2>${state.notices.length ? state.notices.map(n => `<p><strong>${n.at}</strong> — ${n.text}</p>`).join("") : `<p class="muted">No alerts yet.</p>`}</section>`);
+}
+
+function safety() {
+  shell(`
+    <section class="grid3">
+      <article class="card"><h3>Meet in public</h3><p class="muted">First meet at Java, a mall, or a church event. Tell a friend where you are.</p></article>
+      <article class="card"><h3>Never send money</h3><p class="muted">Premium is the only payment in Pamoja. Anyone asking for M-Pesa to “verify” is a scam.</p></article>
+      <article class="card"><h3>Report</h3><p class="muted">Reports in this demo stay on your device. A real launch sends them to moderators.</p></article>
+    </section>
+    <section class="panel" style="margin-top:16px">
+      <h3>Report or block a demo profile</h3>
+      <form id="report">
+        <label>Person</label>
+        <select name="id">${SEED.map(p => `<option value="${p.id}">${p.name} · ${p.town}</option>`).join("")}</select>
+        <label>Reason</label>
+        <input name="reason" required placeholder="Fake profile, harassment, asking for money" />
+        <div class="row"><button class="solid" type="submit">Report and block</button></div>
+      </form>
+      <p class="note">Blocked: ${state.blocks.length ? state.blocks.join(", ") : "none"}</p>
+    </section>`);
+  document.getElementById("report").onsubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    state.blocks.push(fd.get("id"));
+    state.reports.push({ id: fd.get("id"), reason: fd.get("reason"), at: Date.now() });
+    notify("Report saved and profile hidden.");
+    toast("Reported and blocked");
+    persist(); render();
+  };
+}
+
+function premium() {
+  shell(`
+    <section class="panel" style="max-width:640px;margin:auto">
+      <div class="kicker">Optional</div>
+      <h2>Pamoja Plus</h2>
+      <p class="muted">See who liked you, extra county radius, and read receipts. Pay with M-Pesa when Daraja is connected.</p>
+      <div class="grid3">
+        <article class="card"><h3>Free</h3><p>Swipe nearby, 1 mode</p></article>
+        <article class="card"><h3>KES 499 / mo</h3><p>Unlimited likes, see likes</p></article>
+        <article class="card"><h3>KES 999 / mo</h3><p>Boost in your county</p></article>
+      </div>
+      <form id="pay" style="margin-top:12px">
+        <label>M-Pesa number</label>
+        <input name="phone" placeholder="07XXXXXXXX" required />
+        <div class="row"><button class="solid" type="submit">Simulate STK push</button></div>
+      </form>
+      <p class="note">No charge is sent. Production uses Safaricom Daraja STK Push and a webhook.</p>
+    </section>`);
+  document.getElementById("pay").onsubmit = (e) => {
+    e.preventDefault();
+    toast("STK prompt simulated. Check your phone in the real app.");
+    notify("Premium checkout started for " + new FormData(e.target).get("phone"));
+  };
+}
+
+function escapeHtml(s) {
+  const amp = String.fromCharCode(38) + "amp;";
+  const lt = String.fromCharCode(38) + "lt;";
+  const gt = String.fromCharCode(38) + "gt;";
+  const quot = String.fromCharCode(38) + "quot;";
+  return String(s).split("&").join(amp).split("<").join(lt).split(">").join(gt).split('"').join(quot);
+}
+
+function render() {
+  const views = { home, join, nearby: nearbyView, matches: matchesView, safety, notes: notesView, profile, premium };
+  (views[state.view] || home)();
+}
 render();
